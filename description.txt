@@ -1,4 +1,0 @@
-Transmit and receive a SPI frame: 
-• Initialize LPSPI for 1M Baud, PCS3 which is connected to SPC on EVB 
-• Wait for Tx FIFO to have at least one available slot then issue transmit 
-• Wait for Rx FIFO to have at least one received frame then read data 
