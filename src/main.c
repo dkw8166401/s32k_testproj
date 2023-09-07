@@ -135,8 +135,10 @@ int main(void)
   SPLL_init_160MHz();      /* Initialize SPLL to 160 MHz with 8 MHz SOSC  //通过8MHz的OSC初始化系统锁相环为160MHz*/
   NormalRUNmode_80MHz();   /* Init clocks: 80 MHz sysclk & core, 40 MHz bus, 20 MHz flash */
   s32_systick_init();
-  LPSPI1_init_master();    /* Initialize LPSPI 1 as master */
-  PORT_init();             /* Configure ports */
+  //LPSPI1_init_master();    	/* Initialize LPSPI 1 as master */
+  LSPI_INIT(0,2,1,0,15,0,1);	//LSPI0配置---fs4500
+  LSPI_INIT(1,2,1,0,7,0,0);		//LSPI1配置---bq79600
+  PORT_init();             		/* Configure ports */
 
 
   delay_ms(100);

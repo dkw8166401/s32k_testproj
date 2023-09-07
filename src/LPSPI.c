@@ -72,7 +72,7 @@ void LPSPI1_init_master(void)
 		         |LPSPI_TCR_FRAMESZ(7); 	//?此项需要配置为与硬件一致的PCSn,此项目配置LPSPI1_PCS1(与79600相连的CS信号，PTA6)
 				    ///数据长度8位 Transmit cmd: PCS1, 8 bits, prescale func'l clk by 4, etc	*/
 											/* CPOL=0改为CPOL=0: SCK inactive state is low时钟空闲时为低电平 							*/
-											/* CPHA=0改为cpha=0: 时钟第二个变化沿有效	*/
+											/* CPHA=0改为cpha=0: 时钟第一个变化沿有效	*/
 											/* PRESCALE=2: Functional clock divided by 2**2 = 4 			*/
 											/* PCS=1: Transfer using PCS1 									*/
 											/* LSBF=0: Data is transfered MSB first 						*/
@@ -133,7 +133,8 @@ void LPSPI1_init_master(void)
 												/* SAMPLE=0: input data sampled on SCK edge 					*/
 												/* MASTER=1: Master mode 										*/
 
-	LPSPI0->TCR   = LPSPI_TCR_CPHA_MASK		//配置发送寄存器,Transmit command register
+	LPSPI0->TCR   =   LPSPI_TCR_CPOL(0)
+					  |LPSPI_TCR_CPHA(1)		//配置发送寄存器,Transmit command register
 					  |LPSPI_TCR_PRESCALE(2)	//设置PRESCALE为010,4分频
 					  |LPSPI_TCR_PCS(0)			//?此项需要配置为与硬件一致的PCSn,此项目配置LPSPI0_PCS0(PTA26)
 					  |LPSPI_TCR_FRAMESZ(15);   ///数据长度16位 Transmit cmd: PCS0, 16 bits, prescale func'l clk by 4, etc	*/
@@ -208,3 +209,57 @@ uint32_t LPSPI0_receive_32bits (void)
   return recieve;                  /* Return received data 			*/
 }
 
+void LSPI_INIT(uint8_t LSPInum,uint8_t PCS_clock,uint8_t mode,uint8_t CSnum,uint8_t Framesize,uint8_t CPOL_x,uint8_t CHPA_x)
+{
+	volatile struct LPSPI_Type *p_LSPI;
+
+    switch(DspiNumber)
+    {											//choose base DSPI address
+        case 0 : p_DSPI = &LPSPI0;
+				 PCC->PCCn[PCC_LPSPI0_INDEX] = 0;
+				 PCC->PCCn[PCC_LPSPI0_INDEX] = PCC_PCCn_PR_MASK
+											 |PCC_PCCn_CGC_MASK
+											 |PCC_PCCn_PCS(PCS_clock);
+			     LPSPI0->CR    = 0x00000000;
+			     LPSPI0->IER   = 0x00000000;
+			     LPSPI0->DER   = 0x00000000;
+			     LPSPI0->CFGR0 = 0x00000000;break;
+        case 1 : p_DSPI = &LPSPI1;
+				 PCC->PCCn[PCC_LPSPI1_INDEX] = 0;
+				 PCC->PCCn[PCC_LPSPI1_INDEX] = PCC_PCCn_PR_MASK
+											  |PCC_PCCn_CGC_MASK
+											  |PCC_PCCn_PCS(PCS_clock);
+			     LPSPI1->CR    = 0x00000000;
+			     LPSPI1->IER   = 0x00000000;
+			     LPSPI1->DER   = 0x00000000;
+			     LPSPI1->CFGR0 = 0x00000000;break;
+        //case 2 : p_DSPI = &SPI_2; break;
+		//case 3 : p_DSPI = &SPI_3; break;
+        default: p_DSPI = &LPSPI0;
+				 PCC->PCCn[PCC_LPSPI1_INDEX] = 0;
+				 PCC->PCCn[PCC_LPSPI1_INDEX] = PCC_PCCn_PR_MASK
+											 |PCC_PCCn_CGC_MASK
+											 |PCC_PCCn_PCS(PCS_clock);
+			     LPSPI0->CR    = 0x00000000;
+			     LPSPI0->IER   = 0x00000000;
+			     LPSPI0->DER   = 0x00000000;
+			     LPSPI0->CFGR0 = 0x00000000;break;
+    }
+    p_LSPI->CFGR1 = mode;
+
+    p_LSPI->TCR = LPSPI_TCR_CPOL(CPOL_x)
+    			 |LPSPI_TCR_CPHA(CHPA_x)
+				 |LPSPI_TCR_PRESCALE(2)
+				 |LPSPI_TCR_PCS(CSnum)
+				 |LPSPI_TCR_FRAMESZ(Framesize);
+
+    p_LSPI->CCR   = LPSPI_CCR_SCKPCS(4)
+  				  |LPSPI_CCR_PCSSCK(4)
+  				  |LPSPI_CCR_DBT(8)
+  				  |LPSPI_CCR_SCKDIV(8);
+
+    p_LSPI->FCR   = LPSPI_FCR_TXWATER(3);
+
+    p_LSPI->CR    = LPSPI_CR_MEN_MASK
+  		  	  	  |LPSPI_CR_DBGEN_MASK;
+}

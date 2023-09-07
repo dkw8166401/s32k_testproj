@@ -43,6 +43,7 @@ uint8_t LPSPI1_receive_8bits (void);
 void LPSPI0_transmit_32bits (uint32_t send);
 uint32_t LPSPI0_receive_32bits (void);
 
-void LSPI_INIT();
+void LSPI_INIT(uint8_t LSPInum,uint8_t PCS_clock,uint8_t mode,uint8_t CSnum,uint8_t Framesize,uint8_t CPOL_x,uint8_t CHPA_x);
+
 
 #endif /* LPSPI_H_ */
